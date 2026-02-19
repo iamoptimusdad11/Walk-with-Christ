@@ -1,18 +1,19 @@
-// Get elements
-const chatWindow = document.getElementById("chatWindow");
+const chatBox = document.getElementById("chatWindow");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
 
-// Add message to chat
 function addMessage(sender, text) {
   const msg = document.createElement("div");
-  msg.className = "chat-message";
   msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
-  chatWindow.appendChild(msg);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Send message
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
 async function sendMessage() {
   const message = input.value.trim();
   if (!message) return;
@@ -20,39 +21,33 @@ async function sendMessage() {
   addMessage("You", message);
   input.value = "";
 
-  const typingMsg = document.createElement("div");
-  typingMsg.className = "chat-message";
-  typingMsg.innerHTML = "<strong>Jesus AI:</strong> typing...";
-  chatWindow.appendChild(typingMsg);
+  const typing = document.createElement("div");
+  typing.innerHTML = "<em>Jesus AI is typing...</em>";
+  chatBox.appendChild(typing);
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message }),
     });
 
     const data = await res.json();
-    chatWindow.removeChild(typingMsg);
+    chatBox.removeChild(typing);
 
-    if (data.reply) {
-      addMessage("Jesus AI", data.reply);
-    } else {
-      addMessage("System", data.error || "No response");
-      console.error("API response:", data);
-    }
+    // ✅ Handle OpenRouter response structure
+    const reply =
+      data.reply ||
+      data.choices?.[0]?.message?.content ||
+      data.error ||
+      "No response";
+
+    addMessage("Jesus AI", reply);
   } catch (err) {
-    chatWindow.removeChild(typingMsg);
-    addMessage("System", "Error contacting server.");
-    console.error("Fetch error:", err);
+    chatBox.removeChild(typing);
+    addMessage("System", "Error contacting AI.");
+    console.error(err);
   }
 }
-
-// Events
-sendBtn.addEventListener("click", sendMessage);
-
-input.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
