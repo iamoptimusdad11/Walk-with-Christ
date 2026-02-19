@@ -54,27 +54,47 @@ function toggleDarkMode() {
 }
 
 // Simple Christian Chatbot (local responses)
-function sendChat() {
+async function sendChat() {
   const input = document.getElementById("chatInput");
   const chatBox = document.getElementById("chatBox");
+  const msg = input.value.toLowerCase();
+  if (!msg) return;
 
-  const userMsg = input.value;
-  if (!userMsg) return;
+  chatBox.innerHTML += `<p><strong>You:</strong> ${msg}</p>`;
+  input.value = "";
 
-  const userDiv = document.createElement("p");
-  userDiv.textContent = "You: " + userMsg;
-  chatBox.appendChild(userDiv);
+  let reply = "God walks with you always.";
 
-  const botDiv = document.createElement("p");
-
-  if (userMsg.toLowerCase().includes("hope")) {
-    botDiv.textContent = "Christ is our living hope. — 1 Peter 1:3";
-  } else if (userMsg.toLowerCase().includes("fear")) {
-    botDiv.textContent = "Do not fear, for I am with you. — Isaiah 41:10";
-  } else {
-    botDiv.textContent = "Keep faith. God walks with you always.";
+  // Encouragement topics
+  if (msg.includes("fear") || msg.includes("afraid")) {
+    reply = "Isaiah 41:10 — Do not fear, for I am with you.";
   }
 
-  chatBox.appendChild(botDiv);
-  input.value = "";
+  else if (msg.includes("hope")) {
+    reply = "Romans 15:13 — May the God of hope fill you with all joy and peace.";
+  }
+
+  else if (msg.includes("anxiety") || msg.includes("worry")) {
+    reply = "Philippians 4:6 — Do not be anxious about anything.";
+  }
+
+  // Prayer generator
+  else if (msg.includes("pray for me") || msg.includes("prayer")) {
+    reply = "Heavenly Father, please bring peace, guidance, and strength today. Amen.";
+  }
+
+  // Bible search intent
+  else if (msg.includes("verse") || msg.includes("scripture")) {
+    const res = await fetch("https://bible-api.com/john 3:16");
+    const data = await res.json();
+    reply = data.text + " — " + data.reference;
+  }
+
+  // Who is Jesus
+  else if (msg.includes("who is jesus")) {
+    reply = "Jesus Christ is the Son of God, Savior of the world, and the source of eternal life (John 14:6).";
+  }
+
+  chatBox.innerHTML += `<p><strong>Assistant:</strong> ${reply}</p>`;
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
