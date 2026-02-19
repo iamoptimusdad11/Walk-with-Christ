@@ -53,3 +53,10 @@ textarea, input {
   background: #111;
   color: white;
 }
+.chat-box {
+  height: 260px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background: #fafafa;
+}
