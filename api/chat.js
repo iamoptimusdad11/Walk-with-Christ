@@ -1,64 +1,39 @@
 export default async function handler(req, res) {
-  // Only allow POST
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { message } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "No message provided" });
-  }
-
   try {
-    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const { message } = req.body;
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3-8b-instruct", // Free & smart
+        model: "mistralai/mistral-7b-instruct",
         messages: [
           {
             role: "system",
-            content: `
-You are "Walk with Christ", a compassionate Christian AI assistant.
-
-Your purpose:
-- Encourage faith and spiritual growth
-- Explain Bible verses simply
-- Offer prayers when requested
-- Provide hope, kindness, and biblical wisdom
-- Never judge or condemn
-
-When appropriate:
-- Include short Bible verses
-- Speak warmly and conversationally
-- Keep responses concise but meaningful
-`
+            content: "You are a kind Christian assistant who answers with love, wisdom, and Bible-based guidance."
           },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-        temperature: 0.7
+          { role: "user", content: message }
+        ]
       })
     });
 
-    const data = await aiResponse.json();
+    const data = await response.json();
 
     const reply =
-      data.choices?.[0]?.message?.content?.trim() ||
-      "I'm here with you. Let's continue walking in faith together. ✝️";
+      data?.choices?.[0]?.message?.content ||
+      "I'm here with you. How can I help spiritually today?";
 
     res.status(200).json({ reply });
 
   } catch (error) {
-    console.error("AI Error:", error);
-    res.status(500).json({
-      reply: "Something went wrong, but God’s love never fails. Please try again."
-    });
+    console.error(error);
+    res.status(500).json({ reply: "Something went wrong. Please try again." });
   }
 }
