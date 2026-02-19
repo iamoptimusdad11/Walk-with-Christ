@@ -1,37 +1,42 @@
 export default async function handler(req, res) {
-  try {
-    console.log("Incoming request");
+  if (req.method !== "POST") {
+    return res.status(405).json({ reply: "Method not allowed" });
+  }
 
+  try {
     const { message } = req.body;
-    console.log("Message:", message);
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-     headers: {
-  "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-  "HTTP-Referer": "https://k-with-christ.vercel.app",
-  "X-Title": "Walk With Christ",
-  "Content-Type": "application/json"
-},
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://walk-with-christ.vercel.app",
+        "X-Title": "Walk With Christ AI"
+      },
       body: JSON.stringify({
         model: "openai/gpt-4o-mini",
         messages: [
-          { role: "system", content: "You are a Christian AI assistant." },
-          { role: "user", content: message },
-        ],
+          {
+            role: "system",
+            content: "You are a Christian assistant who answers using the Bible and Christian teachings."
+          },
+          { role: "user", content: message }
+        ]
       }),
     });
 
     const data = await response.json();
-    console.log("OpenRouter response:", data);
 
-    if (!response.ok) {
-      return res.status(500).json({ error: data });
-    }
+    // ✅ Extract the actual AI message
+    const reply =
+      data.choices?.[0]?.message?.content ||
+      "Sorry, I could not respond.";
 
-    res.status(200).json({ reply: data.choices[0].message.content });
-  } catch (err) {
-    console.error("Server crash:", err);
-    res.status(500).json({ error: "Server crashed" });
+    res.status(200).json({ reply });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ reply: "Server error." });
   }
 }
