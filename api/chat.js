@@ -10,14 +10,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "No message provided" });
     }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://walk-with-christ.vercel.app", // required by OpenRouter
+        "X-Title": "Walk With Christ",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "openai/gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -32,8 +34,8 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("OpenAI error:", data);
-      return res.status(500).json({ error: "OpenAI request failed", details: data });
+      console.error("OpenRouter error:", data);
+      return res.status(500).json({ error: "OpenRouter request failed", details: data });
     }
 
     const reply = data.choices?.[0]?.message?.content || "No response.";
