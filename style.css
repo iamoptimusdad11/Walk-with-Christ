@@ -1,0 +1,55 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  transition: 0.3s;
+}
+
+.hero {
+  background: url('jesus.png') center/cover fixed;
+  height: 50vh;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-attachment: fixed;
+}
+
+nav {
+  background: #2c6e49;
+  padding: 10px;
+  text-align: center;
+}
+
+nav button {
+  margin: 5px;
+  padding: 10px;
+  border: none;
+  background: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+section {
+  display: none;
+  padding: 20px;
+  background: white;
+  margin: 10px;
+  border-radius: 10px;
+}
+
+section.active {
+  display: block;
+}
+
+textarea, input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.dark {
+  background: #111;
+  color: white;
+}
