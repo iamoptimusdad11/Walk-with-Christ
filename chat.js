@@ -1,19 +1,50 @@
-const chatBox = document.getElementById("chatWindow");
-const input = document.getElementById("chatInput");
-const sendBtn = document.getElementById("sendBtn");
+// chat.js
 
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("chat-input");
+const sendBtn = document.getElementById("send-btn");
+
+// Add message to chat UI
 function addMessage(sender, text) {
-  const msg = document.createElement("p");
+  const msg = document.createElement("div");
+  msg.className = "message";
   msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
+// Typing indicator
+function showTyping() {
+  const typing = document.createElement("div");
+  typing.className = "message";
+  typing.id = "typing";
+  typing.innerHTML = `<em>Jesus AI is typing...</em>`;
+  chatBox.appendChild(typing);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
+function removeTyping() {
+  const typing = document.getElementById("typing");
+  if (typing) typing.remove();
+}
+
+// Extract reply from OpenRouter response
+function extractReply(data) {
+  if (!data) return "No response from server.";
+
+  // OpenRouter format
+  if (data.choices?.[0]?.message?.content) {
+    return data.choices[0].message.content;
+  }
+
+  // fallback formats
+  if (typeof data.reply === "string") return data.reply;
+  if (data.message) return data.message;
+
+  return JSON.stringify(data);
+}
+
+// Send message to API
 async function sendMessage() {
   const message = input.value.trim();
   if (!message) return;
@@ -21,9 +52,7 @@ async function sendMessage() {
   addMessage("You", message);
   input.value = "";
 
-  const typingMsg = document.createElement("p");
-  typingMsg.innerHTML = "<strong>Jesus AI:</strong> Typing...";
-  chatBox.appendChild(typingMsg);
+  showTyping();
 
   try {
     const res = await fetch("/api/chat", {
@@ -35,17 +64,24 @@ async function sendMessage() {
     });
 
     const data = await res.json();
-    chatBox.removeChild(typingMsg);
+    console.log("API response:", data);
 
-    if (data.reply) {
-      addMessage("Jesus AI", data.reply);
-    } else {
-      addMessage("System", data.error || "No response from AI.");
-      console.error("API response:", data);
-    }
+    removeTyping();
+
+    const replyText = extractReply(data);
+    addMessage("Jesus AI", replyText);
+
   } catch (err) {
-    chatBox.removeChild(typingMsg);
-    addMessage("System", "Error contacting AI.");
+    removeTyping();
     console.error("Fetch error:", err);
+    addMessage("System", "⚠️ Unable to reach the server.");
   }
 }
+
+// Send button click
+sendBtn.addEventListener("click", sendMessage);
+
+// Press Enter to send
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
