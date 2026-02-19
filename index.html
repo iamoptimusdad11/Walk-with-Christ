@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walk with Christ</title>
+
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <h1>Walk with Christ</h1>
+  <p>Faith • Prayer • Scripture • Peace</p>
+</header>
+
+<nav>
+  <button onclick="showSection('verse')">Verse</button>
+  <button onclick="showSection('search')">Bible</button>
+  <button onclick="showSection('journal')">Journal</button>
+  <button onclick="showSection('worship')">Worship</button>
+  <button onclick="showSection('chat')">Chat</button>
+  <button onclick="toggleDarkMode()">🌙</button>
+</nav>
+
+<!-- Verse of the Day -->
+<section id="verse" class="active">
+  <h2>📖 Verse of the Day</h2>
+  <p id="verseText">Loading...</p>
+</section>
+
+<!-- Bible Search -->
+<section id="search">
+  <h2>🔍 Bible Search</h2>
+  <input id="searchInput" placeholder="e.g. John 1:1">
+  <button onclick="searchBible()">Search</button>
+  <p id="searchResult"></p>
+</section>
+
+<!-- Prayer Journal -->
+<section id="journal">
+  <h2>🙏 Prayer Journal</h2>
+  <textarea id="prayerText" placeholder="Write your prayer..."></textarea>
+  <button onclick="savePrayer()">Save</button>
+  <ul id="prayerList"></ul>
+</section>
+
+<!-- Worship Mode -->
+<section id="worship">
+  <h2>🎵 Worship & Meditation</h2>
+  <p>Quiet your heart and reflect.</p>
+  <audio controls>
+    <source src="worship.mp3" type="audio/mpeg">
+  </audio>
+</section>
+
+<!-- Chat Assistant -->
+<section id="chat">
+  <h2>🤖 Christian Chat Assistant</h2>
+  <input id="chatInput" placeholder="Ask a question...">
+  <button onclick="sendChat()">Send</button>
+  <div id="chatBox"></div>
+</section>
+
+<script src="app.js"></script>
+
+</body>
+</html>
