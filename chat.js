@@ -1,75 +1,53 @@
-// chat.js — Frontend chat handler for Walk with Christ
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("user-input");
+const sendBtn = document.getElementById("send-btn");
 
-const chatWindow = document.getElementById("chatWindow");
-const chatInput = document.getElementById("chatInput");
-const sendBtn = document.getElementById("sendBtn");
+function addMessage(sender, text) {
+  const msg = document.createElement("p");
+  msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-// 🔹 Send message when button clicked
 sendBtn.addEventListener("click", sendMessage);
-
-// 🔹 Send message when pressing Enter
-chatInput.addEventListener("keypress", function (e) {
-  if (e.key === "Enter") {
-    sendMessage();
-  }
+input.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") sendMessage();
 });
 
 async function sendMessage() {
-  const message = chatInput.value.trim();
+  const message = input.value.trim();
   if (!message) return;
 
-  appendMessage("You", message);
-  chatInput.value = "";
+  addMessage("You", message);
+  input.value = "";
 
   // Show typing indicator
-  const typingId = appendMessage("Jesus AI", "Typing...");
+  const typingMsg = document.createElement("p");
+  typingMsg.innerHTML = "<strong>Jesus AI:</strong> Typing...";
+  chatBox.appendChild(typingMsg);
 
   try {
-    const response = await fetch("/api/chat", {
-      method: "POST", // ✅ REQUIRED
+    const res = await fetch("/api/chat", {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ message }),
     });
 
-    const data = await response.json();
+    const data = await res.json();
 
-    // Remove typing indicator
-    removeMessage(typingId);
+    chatBox.removeChild(typingMsg);
 
     if (data.reply) {
-      appendMessage("Jesus AI", data.reply);
+      addMessage("Jesus AI", data.reply);
     } else {
-      appendMessage("System", "No response from AI.");
+      addMessage("System", "No response from AI.");
+      console.error("API response:", data);
     }
-
-  } catch (error) {
-    removeMessage(typingId);
-    appendMessage("Error", "Failed to connect to AI.");
-    console.error(error);
+  } catch (err) {
+    chatBox.removeChild(typingMsg);
+    addMessage("System", "Error contacting AI.");
+    console.error("Fetch error:", err);
   }
-}
-
-// 🧱 Append message to chat window
-function appendMessage(sender, text) {
-  const messageDiv = document.createElement("div");
-  const id = "msg-" + Date.now();
-
-  messageDiv.className = "chat-message";
-  messageDiv.id = id;
-
-  messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-  chatWindow.appendChild(messageDiv);
-
-  // Auto scroll
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-
-  return id;
-}
-
-// ❌ Remove typing message
-function removeMessage(id) {
-  const msg = document.getElementById(id);
-  if (msg) msg.remove();
 }
