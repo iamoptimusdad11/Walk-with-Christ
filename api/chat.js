@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "You are a kind Christian assistant who answers with love, wisdom, and Bible-based guidance."
+            content: "You are a Christian assistant who answers questions using the Bible and loving guidance."
           },
           { role: "user", content: message }
         ]
@@ -25,9 +25,12 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+    console.log("OpenRouter response:", JSON.stringify(data, null, 2));
 
     const reply =
       data?.choices?.[0]?.message?.content ||
+      data?.choices?.[0]?.text ||
+      data?.message ||
       "I'm here with you. How can I help spiritually today?";
 
     res.status(200).json({ reply });
