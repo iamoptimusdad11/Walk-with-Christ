@@ -1,6 +1,6 @@
-const chatBox = document.getElementById("chat-box");
-const input = document.getElementById("user-input");
-const sendBtn = document.getElementById("send-btn");
+const chatBox = document.getElementById("chatWindow");
+const input = document.getElementById("chatInput");
+const sendBtn = document.getElementById("sendBtn");
 
 function addMessage(sender, text) {
   const msg = document.createElement("p");
@@ -21,7 +21,6 @@ async function sendMessage() {
   addMessage("You", message);
   input.value = "";
 
-  // Show typing indicator
   const typingMsg = document.createElement("p");
   typingMsg.innerHTML = "<strong>Jesus AI:</strong> Typing...";
   chatBox.appendChild(typingMsg);
@@ -36,13 +35,12 @@ async function sendMessage() {
     });
 
     const data = await res.json();
-
     chatBox.removeChild(typingMsg);
 
     if (data.reply) {
       addMessage("Jesus AI", data.reply);
     } else {
-      addMessage("System", "No response from AI.");
+      addMessage("System", data.error || "No response from AI.");
       console.error("API response:", data);
     }
   } catch (err) {
