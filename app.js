@@ -13,14 +13,13 @@ function showSection(id) {
 /* ---------- Verse of the Day ---------- */
 async function loadVerse() {
   try {
-    const res = await fetch("https://bible-api.com/psalms 23:1");
-    const data = await res.json();
-    document.getElementById("verseText").innerText =
-      data.text + " — " + data.reference;
-  } catch {
-    document.getElementById("verseText").innerText =
-      "The Lord is my shepherd; I shall not want. — Psalm 23:1";
-  }
+    const res = await fetch(
+  "https://beta.ourmanna.com/api/v1/get/?format=json",
+  { cache: "no-store" }
+);
+const data = await res.json();
+document.getElementById("verseText").innerText =
+  data.verse.details.text; }
 }
 loadVerse();
 
