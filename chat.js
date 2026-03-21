@@ -1,27 +1,16 @@
-const chatBox = document.getElementById("chatWindow");
-const input = document.getElementById("chatInput");
-const sendBtn = document.getElementById("sendBtn");
-
 const chatMessages = [
-  {
-    role: "system",
-    content: "You are a compassionate Christian assistant."
-  }
+  { role: "system", content: "You are a compassionate Christian assistant." }
 ];
 
-function addMessage(sender, text) {
-  const msg = document.createElement("div");
-  msg.className = sender === "You" ? "message user" : "message bot";
-  msg.innerHTML = `<div class="bubble">${text}</div>`;
-  chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
 async function sendMessage() {
-  const userMessage = input.value.trim();
-  if (!userMessage) return;
+  const input = document.getElementById("chatInput");
+  const chatBox = document.getElementById("chatWindow");
+  if (!input || !chatBox) return;
 
-  addMessage("You", userMessage);
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage("You", msg);
   input.value = "";
 
   const typing = document.createElement("div");
@@ -29,7 +18,7 @@ async function sendMessage() {
   typing.innerHTML = "<em>Jesus AI is typing...</em>";
   chatBox.appendChild(typing);
 
-  chatMessages.push({ role: "user", content: userMessage });
+  chatMessages.push({ role: "user", content: msg });
 
   try {
     const res = await fetch("/api/chat", {
@@ -56,8 +45,3 @@ async function sendMessage() {
     console.error(err);
   }
 }
-
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") sendMessage();
-});
