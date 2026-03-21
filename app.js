@@ -1,13 +1,20 @@
 /* =====================================
-   WALK WITH CHRIST — COMPLETE APP.JS
+   WALK WITH CHRIST — APP.JS
    ===================================== */
 
 /* ---------- Navigation ---------- */
 function showSection(id) {
-  document.querySelectorAll("section").forEach(section => {
-    section.classList.remove("active");
+  document.querySelectorAll(".section").forEach(section => {
+    section.classList.add("hidden");
   });
-  document.getElementById(id).classList.add("active");
+
+  const activeSection = document.getElementById(id);
+  if (activeSection) activeSection.classList.remove("hidden");
+}
+
+/* ---------- Dark Mode ---------- */
+function toggleTheme() {
+  document.body.classList.toggle("dark");
 }
 
 /* ---------- Verse of the Day ---------- */
@@ -19,56 +26,65 @@ async function loadVerse() {
     );
 
     const data = await res.json();
-
     document.getElementById("verseText").innerText =
-      data.verse.details.text;
-  } catch {
+      data?.verse?.details?.text ||
+      "The Lord is my shepherd; I shall not want. — Psalm 23:1";
+  } catch (error) {
     document.getElementById("verseText").innerText =
       "The Lord is my shepherd; I shall not want. — Psalm 23:1";
   }
 }
 
-loadVerse();
-
 /* ---------- Bible Search ---------- */
 async function searchBible() {
-  const query = document.getElementById("searchInput").value.trim();
-  if (!query) return;
-
+  const input = document.getElementById("searchInput");
   const resultBox = document.getElementById("searchResult");
+
+  if (!input || !resultBox) return;
+
+  const query = input.value.trim();
+  if (!query) {
+    resultBox.innerText = "Please enter a verse like John 3:16.";
+    return;
+  }
+
   resultBox.innerText = "Searching...";
 
   try {
-    const res = await fetch(`https://bible-api.com/${query}`);
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(query)}`);
     const data = await res.json();
 
     if (data.text) {
-      resultBox.innerText = data.text + " — " + data.reference;
+      resultBox.innerText = `${data.text} — ${data.reference}`;
     } else {
       resultBox.innerText = "No results found. Try 'John 3:16'.";
     }
-  } catch {
+  } catch (error) {
     resultBox.innerText = "Error retrieving scripture.";
   }
 }
 
 /* ---------- Prayer Journal ---------- */
 function savePrayer() {
-  const text = document.getElementById("prayerText").value.trim();
+  const textArea = document.getElementById("prayerText");
+  if (!textArea) return;
+
+  const text = textArea.value.trim();
   if (!text) return;
 
   const prayers = JSON.parse(localStorage.getItem("prayers")) || [];
   prayers.push(text);
   localStorage.setItem("prayers", JSON.stringify(prayers));
 
-  document.getElementById("prayerText").value = "";
+  textArea.value = "";
   displayPrayers();
 }
 
 function displayPrayers() {
   const list = document.getElementById("prayerList");
-  list.innerHTML = "";
+  if (!list) return;
 
+  list.innerHTML = "";
   const prayers = JSON.parse(localStorage.getItem("prayers")) || [];
 
   prayers.forEach(prayer => {
@@ -78,15 +94,7 @@ function displayPrayers() {
   });
 }
 
-displayPrayers();
-
-/* ---------- Dark Mode ---------- */
-function toggleDarkMode() {
-  document.body.classList.toggle("dark");
-}
-
-/* ---------- AI Christian Chat (Secure via /api/chat) ---------- */
-
+/* ---------- Chat ---------- */
 const chatMessages = [
   {
     role: "system",
@@ -95,44 +103,76 @@ const chatMessages = [
   }
 ];
 
+function addMessage(sender, text) {
+  const chatBox = document.getElementById("chatWindow");
+  if (!chatBox) return;
+
+  const msg = document.createElement("div");
+  msg.className = sender === "You" ? "message user" : "message bot";
+  msg.innerHTML = `<div class="bubble">${text}</div>`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
 async function sendMessage() {
   const input = document.getElementById("chatInput");
-  const chatBox = document.getElementById("chatBox");
+  const chatBox = document.getElementById("chatWindow");
+
+  if (!input || !chatBox) return;
 
   const userMessage = input.value.trim();
   if (!userMessage) return;
 
-  // Show user message
-  chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+  addMessage("You", userMessage);
   input.value = "";
+
+  const typing = document.createElement("div");
+  typing.className = "typing";
+  typing.innerHTML = "<em>Jesus AI is typing...</em>";
+  chatBox.appendChild(typing);
+  chatBox.scrollTop = chatBox.scrollHeight;
 
   chatMessages.push({ role: "user", content: userMessage });
 
   try {
     const response = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: chatMessages })
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "I'm here with you. How can I support you today?";
+    if (typing.parentNode === chatBox) chatBox.removeChild(typing);
+
+    const reply =
+      data.reply ||
+      data.choices?.[0]?.message?.content ||
+      data.error ||
+      "I'm here with you. How can I support you today?";
 
     chatMessages.push({ role: "assistant", content: reply });
-
-    chatBox.innerHTML += `<p><strong>Walk with Christ:</strong> ${reply}</p>`;
-    chatBox.scrollTop = chatBox.scrollHeight;
-
+    addMessage("Jesus AI", reply);
   } catch (error) {
-    chatBox.innerHTML += `<p><strong>Walk with Christ:</strong> I'm having trouble connecting right now. Please try again in a moment.</p>`;
+    if (typing.parentNode === chatBox) chatBox.removeChild(typing);
+    addMessage(
+      "System",
+      "I'm having trouble connecting right now. Please try again later."
+    );
+    console.error(error);
   }
 }
 
-/* ---------- Service Worker Registration ---------- */
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js");
+/* ---------- INITIALIZATION ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  loadVerse();
+  displayPrayers();
+  showSection("verse");
+
+  const sendBtn = document.getElementById("sendBtn");
+  const input = document.getElementById("chatInput");
+
+  if (sendBtn) sendBtn.addEventListener("click", sendMessage);
+  if (input) input.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
   });
-}
+});
