@@ -2,52 +2,62 @@ const chatBox = document.getElementById("chatWindow");
 const input = document.getElementById("chatInput");
 const sendBtn = document.getElementById("sendBtn");
 
+const chatMessages = [
+  {
+    role: "system",
+    content: "You are a compassionate Christian assistant."
+  }
+];
+
 function addMessage(sender, text) {
   const msg = document.createElement("div");
-  msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  msg.className = sender === "You" ? "message user" : "message bot";
+  msg.innerHTML = `<div class="bubble">${text}</div>`;
   chatBox.appendChild(msg);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-sendBtn.addEventListener("click", sendMessage);
-input.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
 async function sendMessage() {
-  const message = input.value.trim();
-  if (!message) return;
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
 
-  addMessage("You", message);
+  addMessage("You", userMessage);
   input.value = "";
 
   const typing = document.createElement("div");
+  typing.className = "typing";
   typing.innerHTML = "<em>Jesus AI is typing...</em>";
   chatBox.appendChild(typing);
+
+  chatMessages.push({ role: "user", content: userMessage });
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: chatMessages })
     });
 
     const data = await res.json();
     chatBox.removeChild(typing);
 
-    // ✅ Handle OpenRouter response structure
-    const reply =
-      data.reply ||
-      data.choices?.[0]?.message?.content ||
-      data.error ||
-      "No response";
+    let reply = "I'm here to encourage you! 🙏";
+    if (data.choices?.[0]?.message?.content) {
+      reply = data.choices[0].message.content;
+    } else if (data.error) {
+      reply = "Error: " + data.error;
+    }
 
+    chatMessages.push({ role: "assistant", content: reply });
     addMessage("Jesus AI", reply);
   } catch (err) {
     chatBox.removeChild(typing);
-    addMessage("System", "Error contacting AI.");
+    addMessage("System", "Error connecting to AI.");
     console.error(err);
   }
 }
+
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
