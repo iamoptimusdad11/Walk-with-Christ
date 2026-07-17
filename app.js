@@ -176,3 +176,62 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") sendMessage();
   });
 });
+// =============================
+// Bible Text-to-Speech
+// =============================
+
+// Get the speech engine
+const speech = window.speechSynthesis;
+
+// Read the Bible passage
+function readBible() {
+
+    // Stop anything already speaking
+    speech.cancel();
+
+    // Get the Bible text from your search result
+    const bibleText = document.getElementById("searchResult").innerText;
+
+    // Make sure there is something to read
+    if (!bibleText.trim()) {
+        alert("Please search for a Bible passage first.");
+        return;
+    }
+
+    // Create speech object
+    const utterance = new SpeechSynthesisUtterance(bibleText);
+
+    // Voice settings
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    // Load available voices
+    const voices = speech.getVoices();
+
+    if (voices.length > 0) {
+
+        // Try to use a natural voice
+        const preferredVoice =
+            voices.find(v => v.name.includes("Google")) ||
+            voices.find(v => v.name.includes("Samantha")) ||
+            voices.find(v => v.name.includes("Microsoft")) ||
+            voices[0];
+
+        utterance.voice = preferredVoice;
+    }
+
+    // Speak
+    speech.speak(utterance);
+}
+
+// Some browsers load voices later
+window.speechSynthesis.onvoiceschanged = function () {
+    speech.getVoices();
+};
+
+// Stop reading
+function stopReading() {
+    speech.cancel();
+}
