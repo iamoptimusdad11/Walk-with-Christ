@@ -1,0 +1,21 @@
+{
+  "name": "walk-with-christ",
+  "version": "1.0.0",
+  "description": "Walk with Christ - A Christian companion app",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'Static site - no build needed'",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "christian",
+    "bible",
+    "prayer",
+    "faith"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
